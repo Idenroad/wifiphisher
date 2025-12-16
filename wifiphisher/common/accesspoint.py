@@ -1,8 +1,5 @@
 """This module was made to fork the rogue access point."""
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 import subprocess
 import time
@@ -14,7 +11,7 @@ import wifiphisher.common.constants as constants
 import wifiphisher.common.victim as victim
 
 
-class AccessPoint(object):
+class AccessPoint:
     """This class forks the softAP."""
 
     # Instance will be stored here.
@@ -31,7 +28,7 @@ class AccessPoint(object):
         # type: () -> None
         """Initialize the class."""
         if AccessPoint.__instance:
-            raise Exception("Error: AccessPoint class is a singleton!")
+            raise RuntimeError("AccessPoint class is a singleton and cannot be instantiated multiple times")
         else:
             AccessPoint.__instance = self
 
@@ -68,8 +65,7 @@ class AccessPoint(object):
                 stdout=subprocess.PIPE,
                 stderr=constants.DN)
         except OSError:
-            print("[{}!{}] dnsmasq is not installed!".format(
-                constants.R, constants.W))
+            print(f"[{constants.R}!{constants.W}] dnsmasq is not installed!")
             raise Exception
 
         subprocess.Popen(
@@ -91,10 +87,11 @@ class AccessPoint(object):
         proc = subprocess.check_output(['ifconfig', str(self.interface)])
         if constants.NETWORK_GW_IP not in proc.decode('utf-8'):
             return False
-        subprocess.call(('route add -net %s netmask %s gw %s' %
-                         (constants.NETWORK_IP, constants.NETWORK_MASK,
-                          constants.NETWORK_GW_IP)),
-                        shell=True)
+        subprocess.run([
+            'route', 'add', '-net', constants.NETWORK_IP,
+            'netmask', constants.NETWORK_MASK,
+            'gw', constants.NETWORK_GW_IP
+        ], check=False)
 
     def start(self, disable_karma=False):
         """Start the softAP."""
@@ -125,13 +122,13 @@ class AccessPoint(object):
                 raise Exception
             except BaseException:
                 print(
-                    "[{}!{}] Roguehostapd is not installed in the system! Please install"
+                    f"[{constants.R}!{constants.W}] roguehostapd is not installed in the system! "
+                    "Please download and install it from "
                     " roguehostapd manually (https://github.com/wifiphisher/roguehostapd)"
                     " and rerun the script. Otherwise, you can run the tool with the"
                     " --force-hostapd option to use hostapd but please note that using"
                     " Wifiphisher with hostapd instead of roguehostapd will turn off many"
-                    " significant features of the tool.".format(
-                        constants.R, constants.W))
+                    " significant features of the tool.")
                 # just raise exception when hostapd is not installed
                 raise Exception
         else:
@@ -144,26 +141,25 @@ class AccessPoint(object):
                     stderr=constants.DN)
             except OSError:
                 print(
-                    "[{}!{}] hostapd is not installed in the system! Please download it"
-                    " using your favorite package manager (e.g. apt-get install hostapd) and "
-                    "rerun the script.".format(constants.R, constants.W))
+                    f"[{constants.R}!{constants.W}] hostapd is not installed in the system! "
+                    "Please download it using your favorite package manager (e.g. apt-get install hostapd) and "
+                    "rerun the script.")
                 # just raise exception when hostapd is not installed
                 raise Exception
 
             time.sleep(2)
             if self.hostapd_object.poll() is not None:
-                print("[{}!{}] hostapd failed to lunch!".format(
-                    constants.R, constants.W))
+                print(f"[{constants.R}!{constants.W}] hostapd failed to lunch!")
                 raise Exception
 
     def on_exit(self):
         # type: () -> None
         """Clean up the resoures when exits."""
-        subprocess.call('pkill dnsmasq', shell=True)
+        subprocess.run(['pkill', 'dnsmasq'], check=False)
         try:
             self.hostapd_object.stop()
         except BaseException:
-            subprocess.call('pkill hostapd', shell=True)
+            subprocess.run(['pkill', 'hostapd'], check=False)
             if os.path.isfile(hostapdconfig.ROGUEHOSTAPD_RUNTIME_CONFIGPATH):
                 os.remove(hostapdconfig.ROGUEHOSTAPD_RUNTIME_CONFIGPATH)
             if os.path.isfile(hostapdconfig.ROGUEHOSTAPD_DENY_MACS_CONFIGPATH):

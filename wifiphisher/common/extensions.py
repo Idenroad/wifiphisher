@@ -32,7 +32,7 @@ def register_backend_funcs(func):
     return func
 
 
-class ExtensionManager(object):
+class ExtensionManager:
     """
     Extension Manager (EM) defines an API for modular
     architecture in Wifiphisher.

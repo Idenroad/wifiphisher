@@ -1,0 +1,5 @@
+pbkdf2
+scapy
+tornado>=5.0.0
+roguehostapd @ git+https://github.com/Idenroad/roguehostapd.git@master
+pyric @ git+https://github.com/sophron/pyric.git@master

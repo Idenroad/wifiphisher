@@ -1,3 +1,33 @@
+Wifiphisher v2.0 [2025-12-15]
+
+🔐 WPA3 SUPPORT
+o Integrated enhanced roguehostapd with WPA3 capabilities [@idenroad]
+o Automatic fallback to WPA2 for compatibility with older devices [@idenroad]
+o Updated roguehostapd dependency to Idenroad fork with WPA3 support [@idenroad]
+
+🛠️ STABILITY & COMPATIBILITY IMPROVEMENTS
+o Fixed critical system crashes with Mediatek wireless cards (mt76, mt7921) [@idenroad]
+o Implemented retry mechanism for interface mode changes (3 attempts with 0.5s delay) [@idenroad]
+o Added automatic exclusion of VPN interfaces (WireGuard, OpenVPN, etc.) to prevent conflicts [@idenroad]
+o Implemented fallback to 'ip link' commands when pyric operations fail [@idenroad]
+o Enhanced cleanup procedure to prevent system freeze and terminal lockup [@idenroad]
+o Added automatic restoration of interfaces to managed mode on exit [@idenroad]
+o Improved error handling to prevent partial cleanup failures from crashing the program [@idenroad]
+
+🔧 TOOLS & DOCUMENTATION
+o Created comprehensive recovery script (wifiphisher_recovery.sh) for system restoration [@idenroad]
+o Added detailed troubleshooting documentation for common issues [@idenroad]
+o Implemented robust logging for critical interface operations [@idenroad]
+o Comprehensive README consolidation with installation and usage guides [@idenroad]
+o Added QUICKSTART.md for quick reference [@idenroad]
+
+🎨 MODERNIZATION
+o Updated Bootstrap framework from 3.x to 5.3.3 in all phishing page templates [@idenroad]
+o Added Python 3.13 compatibility and support [@idenroad]
+o Fixed customize_compiler import for Python 3.13+ compatibility in setup.py [@idenroad]
+o Modernized Python code with f-strings throughout the codebase [@idenroad]
+o Code modernization and improvements for better readability [@idenroad]
+
 Wifiphisher v1.4 [2018-01-12]
 
 o Added dissociation frame to DEAUTH attack [@anakin1028]

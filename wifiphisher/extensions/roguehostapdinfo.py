@@ -1,6 +1,6 @@
-"""
-Extension that interacts with roguehostapd to print relevant information. For example,
-information regarding automatic association attacks.
+"""Extension that interacts with roguehostapd to print relevant information.
+
+For example, information regarding automatic association attacks.
 """
 
 from collections import defaultdict
@@ -8,10 +8,8 @@ from collections import defaultdict
 import wifiphisher.common.constants as constants
 
 
-class Roguehostapdinfo(object):
-    """
-    Handles for printing KARMA attack information
-    """
+class Roguehostapdinfo:
+    """Handles printing KARMA attack information."""
 
     def __init__(self, data):
         """
@@ -93,11 +91,11 @@ class Roguehostapdinfo(object):
         for mac, ssid in macssid_pairs:
 
             if ssid == self._data.target_ap_essid:
-                outputstr = "Victim " + mac + " probed for WLAN with ESSID: '" + ssid + "' (Evil Twin)"
+                outputstr = f"Victim {mac} probed for WLAN with ESSID: '{ssid}' (Evil Twin)"
             elif ssid not in self._known_beacon_ssids:
-                outputstr = "Victim " + mac + " probed for WLAN with ESSID: '" + ssid + "' (KARMA)"
+                outputstr = f"Victim {mac} probed for WLAN with ESSID: '{ssid}' (KARMA)"
             else:
-                outputstr = "Victim " + mac + " probed for WLAN with ESSID: '" + ssid + "' (Known Beacons)"
+                outputstr = f"Victim {mac} probed for WLAN with ESSID: '{ssid}' (Known Beacons)"
             info.append(outputstr)
         return info
 

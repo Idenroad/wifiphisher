@@ -85,5 +85,32 @@ class TestVictim(unittest.TestCase):
         self.assertTrue("Windows" == victims_instance.victims_dic["5C:BA:37:23:44:53"].os)
         self.assertTrue("Android" == victims_instance.victims_dic["68:CC:6E:23:44:53"].os)
 
+    def test_assign_ip_to_nonexistent_victim_raises_keyerror(self):
+        """Test that assigning IP to non-existent victim raises KeyError."""
+        victims_instance = victim.Victims.get_instance()
+        new_victim = victim.Victim("AA:BB:CC:DD:EE:FF", "10.0.0.1")
+        
+        with self.assertRaises(KeyError) as context:
+            new_victim.assign_ip_to_victim("ZZ:ZZ:ZZ:ZZ:ZZ:ZZ", "10.0.0.99")
+        
+        self.assertIn("not found in victims dictionary", str(context.exception))
+
+    def test_associate_vendor_to_nonexistent_victim_raises_keyerror(self):
+        """Test that associating vendor to non-existent victim raises KeyError."""
+        new_victim = victim.Victim("AA:BB:CC:DD:EE:FF", "10.0.0.1")
+        
+        with self.assertRaises(KeyError) as context:
+            new_victim.associate_victim_mac_to_vendor("ZZ:ZZ:ZZ:ZZ:ZZ:ZZ")
+        
+        self.assertIn("not found in victims dictionary", str(context.exception))
+
+    def test_victims_singleton_raises_runtimeerror(self):
+        """Test that creating multiple Victims instances raises RuntimeError."""
+        # First instance already exists from previous tests
+        with self.assertRaises(RuntimeError) as context:
+            victim.Victims()
+        
+        self.assertIn("singleton", str(context.exception).lower())
+
 if __name__ == '__main__':
     unittest.main()

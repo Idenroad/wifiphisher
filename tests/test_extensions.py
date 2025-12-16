@@ -1,13 +1,11 @@
-"""
-Unit tests for Extension Manager
-"""
+"""Unit tests for Extension Manager."""
 
 import os
 import shutil
 import sys
 import unittest
+from unittest.mock import Mock, patch, MagicMock
 
-import mock
 import scapy.layers.dot11 as dot11
 import wifiphisher.common.constants as constants
 import wifiphisher.common.extensions as extensions

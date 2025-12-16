@@ -32,7 +32,7 @@ credential_log_path = None
 class DowngradeToHTTP(tornado.web.RequestHandler):
     def get(self):
         port = self.application.settings.get('port')
-        self.redirect("http://10.0.0.1:{}/".format(port))
+        self.redirect(f"http://10.0.0.1:{port}/")
 
 
 class BackendHandler(tornado.web.RequestHandler):
@@ -103,8 +103,7 @@ class CaptivePortalHandler(tornado.web.RequestHandler):
 
         log_file_path = "/tmp/wifiphisher-webserver.tmp"
         with open(log_file_path, "a+") as log_file:
-            log_file.write("GET request from {0} for {1}\n".format(
-                self.request.remote_ip, self.request.full_url()))
+            log_file.write(f"GET request from {self.request.remote_ip} for {self.request.full_url()}\n")
         # record the GET request in the logging file
         logger.info("GET request from %s for %s", self.request.remote_ip,
                     self.request.full_url())
@@ -143,8 +142,7 @@ class CaptivePortalHandler(tornado.web.RequestHandler):
                 # log the data
                 log_file_path = "/tmp/wifiphisher-webserver.tmp"
                 with open(log_file_path, "a+") as log_file:
-                    log_file.write("POST request from {0} with {1}\n".format(
-                        self.request.remote_ip, post_data))
+                    log_file.write(f"POST request from {self.request.remote_ip} with {post_data}\n")
                     # record the post requests in the logging file
                     logger.info("POST request from %s with %s",
                                 self.request.remote_ip, post_data)
@@ -152,10 +150,8 @@ class CaptivePortalHandler(tornado.web.RequestHandler):
                    re.search(constants.REGEX_UNAME, post_data, re.IGNORECASE):
                     if credential_log_path:
                         with open(credential_log_path, 'a+') as credential_log:
-                            credential_log.write("{} {}".format(
-                                time.strftime(constants.CREDENTIALS_DATETIME_FORMAT),
-                                "POST request from {0} with {1}\n".format(
-                                    self.request.remote_ip, post_data)))
+                            credential_log.write(f"{time.strftime(constants.CREDENTIALS_DATETIME_FORMAT)} "
+                                f"POST request from {self.request.remote_ip} with {post_data}\n")
                     creds.append(post_data)
                     terminate = True
         # Invalid UTF-8, drop it.

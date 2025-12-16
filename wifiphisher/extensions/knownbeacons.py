@@ -1,6 +1,4 @@
-"""
-Extension that sends a number of known beacons to trigger the AUTO-CONNECT flag.
-"""
+"""Extension that sends a number of known beacons to trigger the AUTO-CONNECT flag."""
 
 import logging
 import time
@@ -12,10 +10,9 @@ import wifiphisher.common.globals as universal
 
 logger = logging.getLogger(__name__)
 
-class Knownbeacons(object):
-    """
-    Sends a number of known beacons to trigger the Auto-Connect flag.
-    """
+
+class Knownbeacons:
+    """Sends a number of known beacons to trigger the Auto-Connect flag."""
 
     def __init__(self, shared_data):
         """
@@ -72,7 +69,7 @@ class Knownbeacons(object):
                 frame_part_3 = dot11.Dot11Elt(ID="SSID", info=essid)
                 frame_part_4 = dot11.Dot11Elt(
                     ID="Rates", info=constants.AP_RATES)
-                frame_part_5 = dot11.Dot11Elt(ID="DSset", info=chr(7))
+                frame_part_5 = dot11.Dot11Elt(ID="DSset", info=b'\x07')
 
                 # create a complete packet by combining the parts
                 complete_frame = (

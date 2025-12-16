@@ -1,17 +1,17 @@
 [![Build Status](https://travis-ci.org/wifiphisher/wifiphisher.svg?branch=master)](https://travis-ci.org/wifiphisher/wifiphisher)
 [![Documentation Status](https://readthedocs.org/projects/wifiphisher/badge/?version=latest)](http://wifiphisher.readthedocs.io/en/latest/?badge=latest)
-![Python Version](https://img.shields.io/badge/python-3.7-blue.svg)
+![Python Version](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL-blue.svg)
 
 <p align="center"><img src="https://wifiphisher.github.io/wifiphisher/wifiphisher.png" /></p>
 
 ## About
-<a href="https://wifiphisher.org">Wifiphisher</a> is a rogue Access Point framework for conducting red team engagements or Wi-Fi security testing. Using Wifiphisher, penetration testers can easily achieve a man-in-the-middle position against wireless clients by performing targeted Wi-Fi association attacks. Wifiphisher can be further used to mount victim-customized web phishing attacks against the connected clients in order to capture credentials (e.g. from third party login pages or WPA/WPA2 Pre-Shared Keys) or infect the victim stations with malwares.
+<a href="https://wifiphisher.org">Wifiphisher</a> is a rogue Access Point framework for conducting red team engagements or Wi-Fi security testing. Using Wifiphisher, penetration testers can easily achieve a man-in-the-middle position against wireless clients by performing targeted Wi-Fi association attacks. Wifiphisher can be further used to mount victim-customized web phishing attacks against the connected clients in order to capture credentials (e.g. from third party login pages or WPA/WPA2/WPA3 Pre-Shared Keys) or infect the victim stations with malwares.
 
 Wifiphisher is...
 
 * ...powerful. Wifiphisher can run for hours inside a Raspberry Pi device
-executing all modern Wi-Fi association techniques (including "Evil Twin", "KARMA" and "Known Beacons").  
+executing all modern Wi-Fi association techniques (including "Evil Twin", "KARMA" and "Known Beacons"). Now with **WPA3 support** via enhanced roguehostapd.
 
 * ...flexible. Supports dozens of arguments and comes with a set of
 community-driven phishing templates for different deployment scenarios.  
@@ -23,6 +23,8 @@ community-driven phishing templates for different deployment scenarios.
 * ...the result of an extensive research. Attacks like "Known Beacons" and "Lure10" as well as state-of-the-art phishing techniques, were disclosed by our developers, and Wifiphisher was the first tool to incorporate them. 
 
 * ...supported by an awesome community of developers and users.
+
+* ...stable and robust. Includes comprehensive fixes for Mediatek chipsets, VPN compatibility (WireGuard, OpenVPN), and automatic interface recovery.
 
 * ...free. Wifiphisher is available for free download, and also comes with full
 source code that you may study, change, or distribute under the terms of the 
@@ -59,6 +61,8 @@ Following are the requirements for getting the most out of Wifiphisher:
 
   - A working Linux system. People have made Wifiphisher work on many distros, but Kali Linux is the officially supported distribution, thus all new features are primarily tested on this platform.
   - One wireless network adapter that supports AP & Monitor mode and is capable of injection. Drivers should support netlink.
+  - **Note for Mediatek chipsets**: This version includes specific fixes for Mediatek drivers. See [Troubleshooting](#troubleshooting) section for details.
+  - **Note for VPN users**: WireGuard, OpenVPN and other VPN interfaces are automatically excluded to prevent conflicts.
 
 ## Installation
 
@@ -71,6 +75,28 @@ sudo python setup.py install # Install any dependencies
 ```
 
 Alternatively, you can download the latest stable version from the <a href="https://github.com/wifiphisher/wifiphisher/releases">Releases page</a>.
+
+### Enhanced roguehostapd with WPA3 Support
+
+This version uses an enhanced roguehostapd from the Idenroad repository that supports WPA3. The dependency is automatically installed during setup.
+
+### Post-Installation: Recovery Script
+
+A recovery script is included to help restore your system in case of crashes:
+
+```bash
+# Make the recovery script executable
+chmod +x wifiphisher_recovery.sh
+
+# Check interface status
+sudo ./wifiphisher_recovery.sh check
+
+# Restore interfaces after a crash
+sudo ./wifiphisher_recovery.sh restore
+
+# Full diagnostic
+sudo ./wifiphisher_recovery.sh diagnose
+```
 
 ## Usage
 
@@ -155,6 +181,57 @@ Following are all the options along with their descriptions (also available with
 <p align="center"><img src="https://wifiphisher.github.io/wifiphisher/ss6.png" /><br /><i>Fake <a href="https://wifiphisher.org/ps/oauth-login/">OAuth Login Page</a></i></p>
 <p align="center"><img src="https://wifiphisher.github.io/wifiphisher/ss4.png" /><br /><i>Fake <a href="https://wifiphisher.org/ps/wifi_connect/">web-based network manager</a></i></p>
 
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Mediatek Chipsets
+If you're using a Mediatek wireless adapter (e.g., MT7612U, MT7921), this version includes specific fixes:
+- **Retry mechanism** for mode changes (3 attempts with 0.5s delay)
+- **Fallback to `ip link`** commands if `pyric` fails
+- **Robust cleanup** that prevents system crashes
+
+**Recommended test command:**
+```bash
+sudo wifiphisher -i wlan1 --noextensions
+```
+
+#### WireGuard/VPN Conflicts
+VPN interfaces are now automatically excluded. However, if you experience issues:
+
+```bash
+# Temporarily stop WireGuard
+sudo wg-quick down wg0
+
+# Run wifiphisher
+sudo wifiphisher [options]
+
+# Restart WireGuard after
+sudo wg-quick up wg0
+```
+
+#### Interface Stuck in Monitor Mode
+If your interface remains in monitor mode after a crash:
+
+```bash
+# Automatic restoration
+sudo ./wifiphisher_recovery.sh restore
+
+# Or manual restoration
+sudo ip link set wlan1 down
+sudo iw dev wlan1 set type managed
+sudo ip link set wlan1 up
+```
+
+#### System Freeze/Crash
+The recovery script can diagnose issues:
+
+```bash
+sudo ./wifiphisher_recovery.sh diagnose
+```
+
+For more detailed troubleshooting information, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
 
 ## Help needed
 If you are a Python developer or a web designer you can help us improve Wifiphisher. Feel free to take a look at the <a href="https://github.com/wifiphisher/wifiphisher/issues">bug tracker</a> for some tasks to do.
@@ -171,7 +248,35 @@ A full list of contributors lies <a href="https://github.com/wifiphisher/wifiphi
 Wifiphisher is licensed under the GPLv3 license. See [LICENSE](LICENSE) for more information.
 
 ## Project Status
-Wifiphisher's current version is **1.4**. You can download the latest release from <a href="https://github.com/wifiphisher/wifiphisher/releases/tag/v1.4">here</a>. Otherwise you can get the latest development version by cloning this repository.
+Wifiphisher's current version is **2.0** with WPA3 support. This version includes enhanced roguehostapd with WPA3 capabilities and improved stability fixes for Mediatek chipsets and VPN compatibility. You can get the latest development version by cloning this repository.
+
+### What's New in Version 2.0
+
+**🔐 WPA3 Support**
+- Enhanced roguehostapd with WPA3 capabilities
+- Compatible with modern Wi-Fi security standards
+- Automatic fallback to WPA2 when needed
+
+**🛠️ Stability Improvements**
+- **Mediatek chipset fixes**: Retry mechanism for mode changes, fallback to `ip link` commands
+- **VPN compatibility**: Automatic exclusion of WireGuard (`wg*`), OpenVPN (`tun*`, `tap*`), and Docker interfaces
+- **Robust cleanup**: Safe interface restoration even after crashes
+- **Recovery tools**: Included `wifiphisher_recovery.sh` script for system recovery
+
+**📝 Enhanced Documentation**
+- Comprehensive troubleshooting guide
+- Improved README with clear installation steps
+- Quick start guide for common scenarios
+
+For a complete list of changes, see [CHANGELOG](CHANGELOG) and [CHANGELOG_FIXES.md](CHANGELOG_FIXES.md).
+
+## Additional Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide for common scenarios
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Detailed troubleshooting for Mediatek, VPN issues, and more
+- **[CHANGELOG_FIXES.md](CHANGELOG_FIXES.md)** - Detailed changelog of stability fixes
+- **[INDEX.md](INDEX.md)** - Documentation index and overview
+- **[RESUME_MODIFICATIONS.md](RESUME_MODIFICATIONS.md)** - Summary of all modifications
 
 ## Disclaimer
 * Usage of Wifiphisher for attacking infrastructures without prior mutual consistency can be considered as an illegal activity. It is the final user's responsibility to obey all applicable local, state and federal laws. Authors assume no liability and are not responsible for any misuse or damage caused by this program.

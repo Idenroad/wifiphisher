@@ -15,7 +15,7 @@ from wifiphisher.common.interfaces import NetworkManager
 LOGGER = getLogger(__name__)
 
 
-class AccessPoint(object):
+class AccessPoint:
     """Represents an access point."""
 
     def __init__(self, ssid, bssid, channel, encryption, capture_file=False):
@@ -31,7 +31,7 @@ class AccessPoint(object):
 
         if capture_file:
             with open(capture_file, "a") as _file:
-                _file.write("{bssid} {ssid}\n".format(bssid=bssid, ssid=ssid))
+                _file.write(f"{bssid} {ssid}\n")
 
     def add_client(self, client):
         # type: (str) -> None
@@ -41,7 +41,7 @@ class AccessPoint(object):
             self.client_count += 1
 
 
-class AccessPointFinder(object):
+class AccessPointFinder:
     """Finds all the available access point."""
 
     def __init__(self, ap_interface, network_manager):
@@ -156,8 +156,7 @@ class AccessPointFinder(object):
 
     def capture_aps(self):
         """Create Lure10 capture file."""
-        self._capture_file = "{LOCS_DIR}area_{time}".format(
-            LOCS_DIR=LOCS_DIR, time=strftime("%Y%m%d_%H%M%S"))
+        self._capture_file = f"{LOCS_DIR}area_{strftime('%Y%m%d_%H%M%S')}"
         LOGGER.info("Create lure10-capture file %s", self._capture_file)
 
     def find_all_access_points(self):

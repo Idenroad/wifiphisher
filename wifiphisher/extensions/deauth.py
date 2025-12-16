@@ -1,8 +1,8 @@
-"""
-Extension that sends 3 DEAUTH/DISAS Frames:
- 1 from the AP to the client
- 1 from the client to the AP
- 1 to the broadcast address
+"""Extension that sends 3 DEAUTH/DISAS Frames.
+
+1 from the AP to the client
+1 from the client to the AP
+1 to the broadcast address
 """
 
 import logging
@@ -14,22 +14,20 @@ import wifiphisher.common.globals as universal
 
 logger = logging.getLogger(__name__)
 
+
 def is_deauth_frame(packet):
-    """
-    Determine if the sending frame is deauth frame
+    """Determine if the sending frame is deauth frame.
+    
     :param packet: A scapy.layers.RadioTap object
     :type packet: scapy.layers.RadioTap
-    :return: True if the frame is belonged to deauth module
+    :return: True if the frame belongs to deauth module
     :rtype: bool
     """
-    if packet.subtype == 10 or packet.subtype == 12:
-        return True
-    return False
+    return packet.subtype in (10, 12)
 
-class Deauth(object):
-    """
-    Handles all the deauthentication process.
-    """
+
+class Deauth:
+    """Handles all the deauthentication process."""
 
     def __init__(self, data):
         """

@@ -1,10 +1,8 @@
-"""
-Extension that sniffs if there is change for WPS PBC exploitation
+"""Extension that sniffs for WPS PBC exploitation opportunities.
 
-Define three WPS states
-
+Define three WPS states:
 1) WPS_IDLE: Wait for target AP bringing WPSPBC IE in the beacon
-2) WPS_CONNECTING: If users specify the WPS association interface
+2) WPS_CONNECTING: If users specify the WPS association interface,
    we can start using wpa_supplicant/wpa_cli to connect to the AP
 3) WPS_CONNECTED: We have connected to the AP
 """
@@ -26,7 +24,7 @@ WPS_IDLE, WPS_CONNECTING, WPS_CONNECTED = list(range(3))
 # wait 3 seconds to give the wps state to the phishinghttp module
 WAIT_CNT = 3
 
-# define the enum to string marco
+# define the enum to string mapping
 WPS_2_STR = {
     WPS_IDLE: "WPS_IDLE",
     WPS_CONNECTING: "WPS_CONNECTING",
@@ -35,25 +33,31 @@ WPS_2_STR = {
 
 
 def kill_wpa_supplicant():
-    """
-    Kill the wpa_supplicant
+    """Kill the wpa_supplicant process.
+    
     :return: None
     :rtype: None
     """
-    proc = subprocess.Popen(['ps', '-A'], stdout=subprocess.PIPE)
-    output = proc.communicate()[0]
-    # total processes in the system
-    sys_procs = output.splitlines()
-    for proc in sys_procs:
-        if 'wpa_supplicant' in proc:
-            pid = int(proc.split(None, 1)[0])
-            os.kill(pid, signal.SIGKILL)
+    try:
+        result = subprocess.run(
+            ['pgrep', 'wpa_supplicant'],
+            stdout=subprocess.PIPE,
+            text=True,
+            check=False
+        )
+        if result.stdout:
+            for pid in result.stdout.strip().split('\n'):
+                try:
+                    os.kill(int(pid), signal.SIGKILL)
+                    logger.info("Killed wpa_supplicant process: %s", pid)
+                except (ValueError, ProcessLookupError):
+                    pass
+    except Exception as e:
+        logger.error("Error killing wpa_supplicant: %s", e)
 
 
-class Wpspbc(object):
-    """
-    Handle the wps exploitation process
-    """
+class Wpspbc:
+    """Handle the WPS exploitation process."""
 
     def __init__(self, data):
         """

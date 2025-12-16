@@ -16,14 +16,12 @@ import os
 import sys
 import shutil
 import tempfile
-import distutils.sysconfig
-import distutils.ccompiler
-
-from distutils.errors import CompileError, LinkError
+import sysconfig
+import subprocess
 from setuptools import Command, find_packages, setup
+from setuptools._distutils import ccompiler
+from setuptools._distutils.errors import CompileError, LinkError
 from textwrap import dedent
-
-import wifiphisher.common.constants as constants
 
 try:
     raw_input  # Python 2
@@ -40,7 +38,9 @@ class CleanCommand(Command):
     def finalize_options(self):
         pass
     def run(self):
-        os.system('rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
+        patterns = ['./build', './dist', './*.pyc', './*.tgz', './*.egg-info']
+        for pattern in patterns:
+            subprocess.run(['rm', '-rf'] + [pattern], check=False)
 
 # code for checking if libnl-dev and libnl-genl-dev exist
 LIBNL_CODE = dedent("""
@@ -87,8 +87,14 @@ def check_required_library(libname, libraries=None, include_dir=None):
     file_name = bin_file_name + '.c'
     with open(file_name, 'w') as filep:
         filep.write(LIBNAME_CODE_DICT[libname])
-    compiler = distutils.ccompiler.new_compiler()
-    distutils.sysconfig.customize_compiler(compiler)
+    compiler = ccompiler.new_compiler()
+    # Python 3.13+: customize_compiler moved from sysconfig to distutils.sysconfig
+    try:
+        from distutils import sysconfig as dist_sysconfig
+        dist_sysconfig.customize_compiler(compiler)
+    except (ImportError, AttributeError):
+        # Fallback for older Python or if distutils is removed
+        pass
     try:
         compiler.link_executable(
             compiler.compile([file_name],
@@ -140,20 +146,32 @@ LICENSE = "GPL"
 KEYWORDS = ["wifiphisher", "evil", "twin", "phishing"]
 PACKAGES = find_packages(exclude=["docs", "tests"])
 INCLUDE_PACKAGE_DATA = True
-VERSION = "1.4"
+VERSION = "2.0"
 CLASSIFIERS = ["Development Status :: 5 - Production/Stable",
                "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
                "Natural Language :: English", "Operating System :: Unix",
-               "Programming Language :: Python :: 2", "Programming Language :: Python :: 2.7",
-               "Programming Language :: Python :: 2 :: Only", "Topic :: Security",
+               "Programming Language :: Python :: 3",
+               "Programming Language :: Python :: 3.7",
+               "Programming Language :: Python :: 3.8",
+               "Programming Language :: Python :: 3.9",
+               "Programming Language :: Python :: 3.10",
+               "Programming Language :: Python :: 3.11",
+               "Programming Language :: Python :: 3.12",
+               "Programming Language :: Python :: 3.13",
+               "Programming Language :: Python :: 3 :: Only",
+               "Topic :: Security",
                "Topic :: System :: Networking", "Intended Audience :: End Users/Desktop",
                "Intended Audience :: System Administrators",
                "Intended Audience :: Information Technology"]
 ENTRY_POINTS = {"console_scripts": ["wifiphisher = wifiphisher.pywifiphisher:run"]}
-INSTALL_REQUIRES = ["pbkdf2", "scapy", "tornado>=5.0.0", "roguehostapd", "pyric"]
-DEPENDENCY_LINKS = \
-["http://github.com/wifiphisher/roguehostapd/tarball/master#egg=roguehostapd-1.9.0", \
-"http://github.com/sophron/pyric/tarball/master#egg=pyric-0.5.0"]
+INSTALL_REQUIRES = [
+    "pbkdf2", 
+    "scapy", 
+    "tornado>=5.0.0",
+    "roguehostapd @ git+https://github.com/Idenroad/roguehostapd.git@master",
+    "pyric @ git+https://github.com/sophron/pyric.git@master"
+]
+DEPENDENCY_LINKS = []
 CMDCLASS = {"clean": CleanCommand,}
 LIB_NL3_PATH = '/usr/include/libnl3'
 LIB_SSL_PATH = '/usr/include/openssl'
@@ -170,6 +188,7 @@ setup(name=NAME, author=AUTHOR, author_email=AUTHOR_EMAIL, description=DESCRIPTI
       license=LICENSE, keywords=KEYWORDS, packages=PACKAGES,
       include_package_data=INCLUDE_PACKAGE_DATA, version=VERSION, entry_points=ENTRY_POINTS,
       install_requires=INSTALL_REQUIRES, dependency_links=DEPENDENCY_LINKS,
+      python_requires=">=3.7",
       classifiers=CLASSIFIERS, url=URL, cmdclass=CMDCLASS)
 
 print(__doc__.format(VERSION))  # print the docstring located at the top of this file

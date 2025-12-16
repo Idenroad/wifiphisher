@@ -7,6 +7,7 @@ the program
 
 import logging
 import random
+import subprocess
 from collections import defaultdict
 from subprocess import PIPE, Popen, check_output
 
@@ -32,13 +33,11 @@ class InvalidInterfaceError(Exception):
         :rtype: None
         """
 
-        message = "The provided interface \"{0}\" is invalid!".format(
-            interface_name)
+        message = f'The provided interface "{interface_name}" is invalid!'
 
         # provide more information if mode is given
         if mode:
-            message += "Interface {0} doesn't support {1} mode".format(
-                interface_name, mode)
+            message += f" Interface {interface_name} doesn't support {mode} mode"
 
         Exception.__init__(self, message)
 
@@ -59,7 +58,7 @@ class InvalidMacAddressError(Exception):
         :return: None
         :rtype: None
         """
-        message = "The MAC address could not be set. (Tried {0})".format(mac_address)
+        message = f"The MAC address could not be set. (Tried {mac_address})"
         Exception.__init__(self, message)
 
 
@@ -84,8 +83,7 @@ class InvalidValueError(Exception):
 
         value_type = type(value)
 
-        message = ("Expected value type to be {0} while got {1}.".format(
-            correct_value_type, value_type))
+        message = f"Expected value type to be {correct_value_type} while got {value_type}."
         Exception.__init__(self, message)
 
 
@@ -141,15 +139,15 @@ class InterfaceManagedByNetworkManagerError(Exception):
         """
 
         message = (
-            "Interface \"{0}\" is controlled by NetworkManager."
+            f'Interface "{interface_name}" is controlled by NetworkManager. '
             "You need to manually set the devices that should be ignored by NetworkManager "
             "using the keyfile plugin (unmanaged-directive). For example, '[keyfile] "
-            "unmanaged-devices=interface-name:\"{0}\"' needs to be added in your "
-            "NetworkManager configuration file.".format(interface_name))
+            f'unmanaged-devices=interface-name:\"{interface_name}\"' 
+            " needs to be added in your NetworkManager configuration file.")
         Exception.__init__(self, message)
 
 
-class NetworkAdapter(object):
+class NetworkAdapter:
     """ This class represents a network interface """
 
     def __init__(self, name, card_obj, mac_address):
@@ -340,9 +338,8 @@ class NetworkAdapter(object):
         return self._original_mac_address
 
 
-class NetworkManager(object):
-    """
-    This class represents a network manager where it handles all the management
+class NetworkManager:
+    """This class represents a network manager where it handles all the management
     for the interfaces.
     """
 
@@ -401,8 +398,8 @@ class NetworkManager(object):
         try:
             proc = Popen(['nmcli', 'dev', 'set', interface, 'manage', 'no'], stderr=PIPE)
             err = proc.communicate()[1]
-        except:
-            logger.error("Failed to make NetworkManager unmanage interface {0}: {1}".format(interface, err))
+        except Exception as e:
+            logger.error("Failed to make NetworkManager unmanage interface %s: %s", interface, e)
             raise InterfaceManagedByNetworkManagerError(interface)
         # Ensure that the interface is unmanaged
         if is_managed_by_network_manager(interface):
@@ -473,7 +470,18 @@ class NetworkManager(object):
         """
 
         card = self._name_to_object[interface_name].card
-        pyw.up(card)
+        try:
+            pyw.up(card)
+        except pyric.error as error:
+            # Some drivers (esp. Mediatek) may have issues - try fallback
+            logger.warning(f"Failed to bring up interface {interface_name}: {error}")
+            try:
+                subprocess.run(['ip', 'link', 'set', interface_name, 'up'], 
+                             check=True, capture_output=True, timeout=5)
+                logger.info(f"Successfully brought up {interface_name} using ip link")
+            except Exception as e:
+                logger.error(f"Failed to bring up {interface_name} with ip link: {e}")
+                raise
 
     def down_interface(self, interface_name):
         """
@@ -488,7 +496,19 @@ class NetworkManager(object):
         """
 
         card = self._name_to_object[interface_name].card
-        pyw.down(card)
+        try:
+            pyw.down(card)
+        except pyric.error as error:
+            # Some drivers may fail to bring interface down - log but don't crash
+            logger.warning(f"Failed to bring down interface {interface_name}: {error}")
+            # Try using ip link as fallback
+            try:
+                subprocess.run(['ip', 'link', 'set', interface_name, 'down'], 
+                             check=True, capture_output=True, timeout=5)
+                logger.info(f"Successfully brought down {interface_name} using ip link")
+            except Exception as e:
+                logger.error(f"Failed to bring down {interface_name} with ip link: {e}")
+                raise
 
     def set_interface_mac(self, interface_name, mac_address=None):
         """
@@ -554,8 +574,23 @@ class NetworkManager(object):
 
         card = self._name_to_object[interface_name].card
         self.down_interface(interface_name)
-        # set interface mode between brining it down and up
-        pyw.modeset(card, mode)
+        
+        # Retry mechanism for problematic drivers (e.g., Mediatek)
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # set interface mode between brining it down and up
+                pyw.modeset(card, mode)
+                logger.info(f"Successfully set {interface_name} to {mode} mode")
+                break
+            except pyric.error as error:
+                if attempt < max_retries - 1:
+                    logger.warning(f"Failed to set mode on attempt {attempt + 1}, retrying...")
+                    import time
+                    time.sleep(0.5)
+                else:
+                    logger.error(f"Failed to set {interface_name} to {mode} mode after {max_retries} attempts")
+                    raise error
 
     def get_interface(self, has_ap_mode=False, has_monitor_mode=False):
         """
@@ -688,7 +723,8 @@ class NetworkManager(object):
             try:
                 number += 1
                 name = 'wfphshr-wlan' + str(number)
-                pyw.down(card)
+                # No need to bring down the card with modern hostapd/pyric
+                # This was killing the connection unnecessarily
                 monitor_card = pyw.devadd(card, name, 'monitor')
                 done_flag = False
             # catch if wlan1 is already exist
@@ -722,8 +758,16 @@ class NetworkManager(object):
         :rtype: None
         """
 
+        # List of interface prefixes to ignore (VPN, virtual interfaces, etc.)
+        ignored_prefixes = ['wg', 'tun', 'tap', 'docker', 'veth', 'br-', 'vmnet', 'lo']
+
         # populate our dictionary with all the available interfaces on the system
         for interface in pyw.interfaces():
+            # Skip VPN and virtual interfaces that can cause conflicts
+            if any(interface.startswith(prefix) for prefix in ignored_prefixes):
+                logger.info(f"Skipping interface {interface} (VPN/virtual interface)")
+                continue
+                
             try:
                 card = pyw.getcard(interface)
                 mac_address = pyw.macget(card)
@@ -753,11 +797,26 @@ class NetworkManager(object):
 
         for interface in self._active:
             if interface not in self._exclude_shutdown:
-                adapter = self._name_to_object[interface]
-                mac_address = adapter.original_mac_address
-                self.set_interface_mac(interface, mac_address)
+                try:
+                    adapter = self._name_to_object[interface]
+                    mac_address = adapter.original_mac_address
+                    # Try to restore interface to managed mode first
+                    try:
+                        self.set_interface_mode(interface, "managed")
+                    except Exception as e:
+                        logger.warning(f"Could not set {interface} to managed mode during cleanup: {e}")
+                    
+                    # Then restore MAC address
+                    self.set_interface_mac(interface, mac_address)
+                except Exception as e:
+                    # Don't let cleanup failures crash the program
+                    logger.error(f"Error during cleanup of interface {interface}: {e}")
+                    
         # remove all the virtual added virtual interfaces
-        self.remove_vifs_added()
+        try:
+            self.remove_vifs_added()
+        except Exception as e:
+            logger.error(f"Error removing virtual interfaces: {e}")
 
 
 def is_add_vif_required(main_interface, internet_interface, wpspbc_assoc_interface):
@@ -938,8 +997,7 @@ def generate_random_address():
     .. warning: The first 3 octets are 00:00:00 by default
     """
 
-    mac_address = constants.DEFAULT_OUI + ":{:02x}:{:02x}:{:02x}".format(
-        random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    mac_address = f"{constants.DEFAULT_OUI}:{random.randint(0, 255):02x}:{random.randint(0, 255):02x}:{random.randint(0, 255):02x}"
     return mac_address
 
 

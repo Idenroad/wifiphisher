@@ -1,11 +1,11 @@
-""" This module tests the interface module """
+"""This module tests the lure10 extension."""
 
 import collections
 import io
 import unittest
 from collections import defaultdict
+from unittest.mock import Mock, patch, mock_open
 
-import mock
 import wifiphisher.common.constants as constants
 import wifiphisher.extensions.lure10 as lure10
 
@@ -67,8 +67,8 @@ class TestLure10(unittest.TestCase):
         bssid0 = "11:11:11:11:11:11"
         bssid1 = "22:22:22:22:22:22"
 
-        content = io.StringIO(u"{} one\n{} two".format(bssid0, bssid1))
-        with mock.patch("wifiphisher.extensions.lure10.open", return_value=content, create=True):
+        content = io.StringIO("{} one\n{} two".format(bssid0, bssid1))
+        with patch("wifiphisher.extensions.lure10.open", return_value=content, create=True):
             pkts_to_send = self._object0.get_packet(self.pkt)
 
         result = pkts_to_send["*"]

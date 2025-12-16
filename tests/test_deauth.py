@@ -1,10 +1,10 @@
 # pylint: skip-file
-""" This module tests the deauth module in extensions """
+"""This module tests the deauth module in extensions."""
 import collections
 import unittest
 from collections import defaultdict
+from unittest.mock import Mock, patch
 
-import mock
 import scapy.layers.dot11 as dot11
 import wifiphisher.common.constants as constants
 import wifiphisher.extensions.deauth as deauth
@@ -29,7 +29,7 @@ class TestDeauth(unittest.TestCase):
         self.target_bssid = "BB:BB:BB:BB:BB:BB"
         self.rogue_mac = "CC:CC:CC:CC:CC:CC"
         self.target_essid = "Evil"
-        self.args = mock.Mock()
+        self.args = Mock()
         self.args.deauth_essid = False
         self.args.channel_monitor = False
         self.args.deauth_channels = []

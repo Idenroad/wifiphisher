@@ -1,16 +1,12 @@
 # pylint: skip-file
-""" This module tests the interface module """
+"""This module tests the interface module."""
 
 import unittest
+from unittest.mock import Mock, patch, MagicMock, call
 
-import pytest
-
-import mock
 import pyric
 import wifiphisher.common.constants as constants
 import wifiphisher.common.interfaces as interfaces
-
-pytestmark = pytest.mark.skip('Skipping for now.')
 
 
 class TestNetworkAdapter(unittest.TestCase):

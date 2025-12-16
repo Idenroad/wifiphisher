@@ -17,7 +17,7 @@ import wifiphisher.extensions.handshakeverify as handshakeverify
 logger = logging.getLogger(__name__)
 
 
-class OpMode(object):
+class OpMode:
     """
     Manager of the operation mode
     """
@@ -318,8 +318,6 @@ def validate_ap_interface(interface):
         pyric.pyw.isinterface(interface) and \
         interfaces.does_have_mode(interface, "AP")):
 
-        raise argparse.ArgumentTypeError("Provided interface ({})"
-                                         " either does not exist or"
-                                         " does not support AP mode" \
-                                        .format(interface))
+        raise argparse.ArgumentTypeError(
+            f"Provided interface ({interface}) either does not exist or does not support AP mode")
     return interface

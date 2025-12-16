@@ -34,8 +34,6 @@ import wifiphisher.common.recon as recon
 import wifiphisher.common.tui as tui
 import wifiphisher.common.victim as victim
 
-from six.moves import range, input
-
 from wifiphisher.common.constants import (BIRTHDAY, CHANNEL, DEAUTH_EXTENSION, DEFAULT_EXTENSIONS,
                                           DEV, DN, G, HANDSHAKE_VALIDATE_EXTENSION,
                                           INTERFERING_PROCS, KNOWN_BEACONS_EXTENSION,
@@ -224,7 +222,7 @@ def parse_args():
     return parser.parse_args()
 
 
-VERSION = "1.4GIT"
+VERSION = "1.5GIT"
 args = parse_args()
 APs = {}  # for listing APs
 
@@ -355,7 +353,7 @@ class WifiphisherEngine:
         try:
              self.network_manager.on_exit()
         except interfaces.InvalidMacAddressError as err:
-            print(("[{0}!{1}] {2}").format(R, W, err))
+            print(f"[{R}!{W}] {err}")
         self.template_manager.on_exit()
         self.fw.on_exit()
 
@@ -466,8 +464,8 @@ class WifiphisherEngine:
                             # Calling unblock on internet interfaces might return a `Key Error` if it does not 
                             # support nl80211. This will be a problem if the interface is blocked as it cannot
                             # be unblocked automatically. Let the user know with a warning.
-                            logger.warning("Interface {} does not support 'nl80211'. In case it is blocked,\
-                                    you must unblock it manually".format(internet_interface))
+                            logger.warning(f"Interface {internet_interface} does not support 'nl80211'. In case it is blocked, "
+                                    "you must unblock it manually")
                 logger.info("Selecting %s interface for accessing internet",
                             args.internetinterface)
             # check if the interface for WPS is valid
@@ -490,12 +488,11 @@ class WifiphisherEngine:
                     )
                 # display selected interfaces to the user
                 logger.info(
-                    "Selecting {} for deauthentication and {} for the rogue Access Point"
-                    .format(mon_iface, ap_iface))
-                print((
-                    "[{0}+{1}] Selecting {0}{2}{1} interface for the deauthentication "
-                    "attack\n[{0}+{1}] Selecting {0}{3}{1} interface for creating the "
-                    "rogue Access Point").format(G, W, mon_iface, ap_iface))
+                    f"Selecting {mon_iface} for deauthentication and {ap_iface} for the rogue Access Point")
+                print(
+                    f"[{G}+{W}] Selecting {G}{mon_iface}{W} interface for the deauthentication "
+                    f"attack\n[{G}+{W}] Selecting {G}{ap_iface}{W} interface for creating the "
+                    "rogue Access Point")
 
             if not self.opmode.extensions_enabled():
                 if args.apinterface:
@@ -506,30 +503,25 @@ class WifiphisherEngine:
                     ap_iface = self.network_manager.get_interface(True, False)
                 mon_iface = ap_iface
 
-                print((
-                    "[{0}+{1}] Selecting {0}{2}{1} interface for creating the "
-                    "rogue Access Point").format(G, W, ap_iface))
-                logger.info("Selecting {} interface for rogue Access Point"
-                            .format(ap_iface))
+                print(
+                    f"[{G}+{W}] Selecting {G}{ap_iface}{W} interface for creating the "
+                    "rogue Access Point")
+                logger.info(f"Selecting {ap_iface} interface for rogue Access Point")
 
             # Randomize MAC
             if not args.no_mac_randomization:
                 try:
                     new_mac = self.network_manager.set_interface_mac(ap_iface,
                         args.mac_ap_interface)
-                    logger.info("Changing {} MAC address to {}".format(
-                        ap_iface, new_mac))
-                    print("[{0}+{1}] Changing {2} MAC addr (BSSID) to {3}".format(
-                        G, W, ap_iface, new_mac))
+                    logger.info(f"Changing {ap_iface} MAC address to {new_mac}")
+                    print(f"[{G}+{W}] Changing {ap_iface} MAC addr (BSSID) to {new_mac}")
                     if mon_iface != ap_iface:
                         new_mac = self.network_manager.set_interface_mac(mon_iface,
                                              args.mac_extensions_interface)
-                        logger.info("Changing {} MAC address to {}".format(
-                            mon_iface, new_mac))
-                        print("[{0}+{1}] Changing {2} MAC addr (BSSID) to {3}".format(
-                            G, W, ap_iface, new_mac))
+                        logger.info(f"Changing {mon_iface} MAC address to {new_mac}")
+                        print(f"[{G}+{W}] Changing {mon_iface} MAC addr (BSSID) to {new_mac}")
                 except interfaces.InvalidMacAddressError as err:
-                    print(("[{0}!{1}] {2}").format(R, W, err))
+                    print(f"[{R}!{W}] {err}")
 
             # make sure interfaces are not blocked
             logger.info("Unblocking interfaces")
@@ -542,7 +534,7 @@ class WifiphisherEngine:
                 interfaces.InterfaceCantBeFoundError,
                 interfaces.InterfaceManagedByNetworkManagerError) as err:
             logging.exception("The following error has occurred:")
-            print(("[{0}!{1}] {2}").format(R, W, err))
+            print(f"[{R}!{W}] {err}")
             time.sleep(1)
             self.stop()
         if args.protectinterface:
@@ -595,8 +587,7 @@ class WifiphisherEngine:
         tui_template_obj = tui.TuiTemplateSelection()
         template = tui_template_obj.gather_info(args.phishingscenario,
                                                 self.template_manager)
-        logger.info("Selecting {} template".format(
-            template.get_display_name()))
+        logger.info(f"Selecting {template.get_display_name()} template")
         print("[" + G + "+" + W + "] Selecting " +
               template.get_display_name() + " template")
 

@@ -45,8 +45,8 @@ class InvalidTemplate(Exception):
                            "not available locally!")
 
 
-class PhishingTemplate(object):
-    """ This class represents phishing templates """
+class PhishingTemplate:
+    """This class represents phishing templates."""
 
     def __init__(self, name):
         """
@@ -289,7 +289,7 @@ class PhishingTemplate(object):
         return self._display_name + "\n\t" + self._description + "\n"
 
 
-class TemplateManager(object):
+class TemplateManager:
     """ This class handles all the template management operations """
 
     def __init__(self, data_pages=None):

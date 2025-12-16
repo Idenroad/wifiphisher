@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wifiphisher"
+version = "1.5"
+description = "Automated phishing attacks against Wi-Fi networks"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "GPL-3.0-or-later"}
+authors = [
+    {name = "sophron", email = "sophron@latthi.com"}
+]
+keywords = ["wifiphisher", "evil", "twin", "phishing", "wifi", "security", "penetration-testing"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Natural Language :: English",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Security",
+    "Topic :: System :: Networking",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Information Technology"
+]
+
+dependencies = [
+    "pbkdf2",
+    "scapy",
+    "tornado>=5.0.0",
+    "roguehostapd @ git+https://github.com/Idenroad/roguehostapd.git@master",
+    "pyric @ git+https://github.com/sophron/pyric.git@master"
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8",
+    "pylint",
+    "pytest",
+    "black",
+    "isort",
+    "mypy"
+]
+
+[project.scripts]
+wifiphisher = "wifiphisher.pywifiphisher:run"
+
+[project.urls]
+Homepage = "https://github.com/wifiphisher/wifiphisher"
+Documentation = "http://wifiphisher.readthedocs.io"
+Repository = "https://github.com/wifiphisher/wifiphisher"
+Issues = "https://github.com/wifiphisher/wifiphisher/issues"
+
+[tool.setuptools]
+packages = ["wifiphisher", "wifiphisher.common", "wifiphisher.extensions"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+wifiphisher = ["data/**/*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311', 'py312', 'py313']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

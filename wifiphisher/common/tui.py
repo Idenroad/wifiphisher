@@ -22,10 +22,8 @@ MainInfo = namedtuple("MainInfo", constants.MAIN_TUI_ATTRS)
 ApSelInfo = namedtuple("ApSelInfo", constants.AP_SEL_ATTRS)
 
 
-class TuiTemplateSelection(object):
-    """
-    TUI to do Template selection
-    """
+class TuiTemplateSelection:
+    """TUI to do Template selection."""
 
     def __init__(self):
         """
@@ -297,7 +295,7 @@ class TuiTemplateSelection(object):
             screen.refresh()
 
 
-class ApDisplayInfo(object):
+class ApDisplayInfo:
     """
     ApDisplayInfo class to store the information for ap selection
     """
@@ -423,7 +421,7 @@ class ApDisplayInfo(object):
         self._box_info[3] = val
 
 
-class TuiApSel(object):
+class TuiApSel:
     """
     TuiApSel class to represent the ap selection terminal window
     """
@@ -715,9 +713,7 @@ class TuiApSel(object):
         ap_info.box.border(0)
 
         # show the header
-        header_fmt = "{0:30} {1:16} {2:3} {3:4} {4:9} {5:5} {6:20}"
-        header = header_fmt.format("ESSID", "BSSID", "CH", "PWR", "ENCR",
-                                   "CLIENTS", "VENDOR")
+        header = f"{'ESSID':30} {'BSSID':16} {'CH':3} {'PWR':4} {'ENCR':9} {'CLIENTS':5} {'VENDOR':20}"
         opt_str = ("Options:  [Esc] Quit  [Up Arrow] Move Up  "
                    "[Down Arrow] Move Down")
 
@@ -748,13 +744,10 @@ class TuiApSel(object):
                     access_point.mac_address)
 
                 # the display format for showing access points
-                display_text = ((
-                    "{0:30} {1:17} {2:2} {3:3}% {4:^8} {5:^5}"
-                    " {6:20}").format(
-                        access_point.name, access_point.mac_address,
-                        access_point.channel, access_point.signal_strength,
-                        access_point.encryption,
-                        access_point.client_count, vendor))
+                display_text = (
+                    f"{access_point.name:30} {access_point.mac_address:17} "
+                    f"{access_point.channel:2} {access_point.signal_strength:3}% "
+                    f"{access_point.encryption:^8} {access_point.client_count:^5} {vendor:20}")
                 # shows whether the access point should be highlighted or not
                 # based on our current position
                 print_row_number = item_position - ap_info.max_row * (
@@ -786,7 +779,7 @@ class TuiApSel(object):
         ap_info.box.refresh()
 
 
-class TuiMain(object):
+class TuiMain:
     """
     TuiMain class to represent the main terminal window
     """

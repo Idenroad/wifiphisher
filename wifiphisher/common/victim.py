@@ -6,7 +6,7 @@ import wifiphisher.common.constants as constants
 from wifiphisher.common.macmatcher import MACMatcher as macmatcher
 
 
-class Victim(object):
+class Victim:
     """Resembles a Victim (i.e. a connected device to the rogue AP)."""
 
     def __init__(self, vmac_address, ip_address):
@@ -37,7 +37,7 @@ class Victim(object):
         if vmac_address in victims_instance.victims_dic:
             victims_instance.victims_dic[vmac_address].vendor = vendor
         else:
-            raise Exception("Error: No such mac address exists in dictionary")
+            raise KeyError(f"MAC address {vmac_address} not found in victims dictionary")
 
     def assign_ip_to_victim(self, vmac_address, ip_address):
         """Update the ip address of the victim by mac address."""
@@ -45,7 +45,7 @@ class Victim(object):
         if vmac_address in victims_instance.victims_dic:
             victims_instance.victims_dic[vmac_address].ip_address = ip_address
         else:
-            raise Exception("Error: No such mac address exists in dictionary")
+            raise KeyError(f"MAC address {vmac_address} not found in victims dictionary")
 
 
 class Victims():
@@ -64,7 +64,7 @@ class Victims():
     def __init__(self):
         """Initialize the class."""
         if Victims.__instance:
-            raise Exception("Error: Victims class is a singleton!")
+            raise RuntimeError("Victims class is a singleton and cannot be instantiated multiple times")
         else:
             Victims.__instance = self
             self.victims_dic = {}
