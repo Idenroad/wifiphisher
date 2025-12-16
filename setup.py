@@ -146,7 +146,7 @@ LICENSE = "GPL"
 KEYWORDS = ["wifiphisher", "evil", "twin", "phishing"]
 PACKAGES = find_packages(exclude=["docs", "tests"])
 INCLUDE_PACKAGE_DATA = True
-VERSION = "2.0"
+VERSION = "1.4"
 CLASSIFIERS = ["Development Status :: 5 - Production/Stable",
                "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
                "Natural Language :: English", "Operating System :: Unix",
